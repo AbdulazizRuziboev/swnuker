@@ -1,256 +1,578 @@
-import requests
 import random
-import json
+import cpmnuker
+import base64
+from time import sleep
+import os, signal, sys
+from rich.console import Console
+from rich.prompt import Prompt, IntPrompt
+from rich.text import Text
+from rich.style import Style
 
-def login(email, password):
-    url = 'https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyPassword?key=AIzaSyAe_aOVT1gSfmHKBrorFvX4fRwN5nODXVA'
-    payload = {
-        'email': email,
-        'password': password,
-        'returnSecureToken': True
-    }
-    post = requests.post(url, data=payload)
-    if post.status_code == 200:
-        post_json = json.loads(post.text)
-        return post_json['idToken']
+
+def signal_handler(sig, frame):
+    print("\n Bye Bye...")
+    sys.exit(0)
+
+def gradient_text(text, colors):
+    lines = text.splitlines()
+    height = len(lines)
+    width = max(len(line) for line in lines)
+    colorful_text = Text()
+    for y, line in enumerate(lines):
+        for x, char in enumerate(line):
+            if char != ' ':
+                color_index = int(((x / (width - 1 if width > 1 else 1)) + (y / (height - 1 if height > 1 else 1))) * 0.5 * (len(colors) - 1))
+                color_index = min(max(color_index, 0), len(colors) - 1)  # Ensure the index is within bounds
+                style = Style(color=colors[color_index])
+                colorful_text.append(char, style=style)
+            else:
+                colorful_text.append(char)
+        colorful_text.append("\n")
+    return colorful_text
+
+def banner(console):
+    try:
+        os.system('cls' if os.name=='nt' else 'clear')
+    except:
+        console.clear()
+    console.print("[bold red][*] " + base64.b64decode('V2VsY29tZSB0byBDUE1OdWtlciwgdGhlIGhhY2tlcnMgdG9vbGtpdA==').decode('utf-8') + "[/bold red].", "\n")
+    console.print("[bold green][*] Description[/bold green]: Car Parking Multiplayer Hacking Tool.")
+    console.print("[bold green][*] Telegram[/bold green]: [bold blue]@" + base64.b64decode('Q1BNTnVrZXJPZmZpY2lhbA==').decode('utf-8') + "[/bold blue].")
+    console.print("[bold red]==================================================[/bold red]")
+    console.print("[bold yellow][!] Note[/bold yellow]: Logout from CPM before using this tool !.", end="\n\n")
+
+def load_player_data(cpm):
+    response = cpm.get_player_data()
+    if response.get('ok'):
+        data = response.get('data')
+        if 'floats' in data and 'localID' in data and 'money' in data and 'coin' in data:
+            console.print("[bold][red]========[/red][ PLAYER DETAILS ][red]========[/red][/bold]")
+            console.print("[bold green]Name   [/bold green]: " + (data.get('Name') if 'Name' in data else 'UNDEFINED') + ".")
+            console.print("[bold green]ID[/bold green]     : " + (data.get('localID') if 'localID' in data else 'UNDEFINED') + ".")
+            console.print("[bold green]Money  [/bold green]: " + (str(data.get('money')) if 'money' in data else 'UNDEFINED') + ".")
+            console.print("[bold green]Coins  [/bold green]: " + (str(data.get('coin')) if 'coin' in data else 'UNDEFINED') + ".", end="\n\n")
+        else:
+            console.print("[bold red]! ERROR[/bold red]: new accounts most be signed-in to the game at least once !.")
+            exit(1)
     else:
-        return post.status_code
-
-def check(request):
-    url = 'https://www.googleapis.com/identitytoolkit/v3/relyingparty/getAccountInfo?key=AIzaSyAe_aOVT1gSfmHKBrorFvX4fRwN5nODXVA'
-    payload = {
-        'idToken': request,
-    }
-    a = requests.post(url, data=payload) 
-    return a
-
-url = 'https://www.googleapis.com/identitytoolkit/v3/relyingparty/signupNewUser?key=AIzaSyAe_aOVT1gSfmHKBrorFvX4fRwN5nODXVA'
-
-def get_info(request):
-    url = 'https://us-central1-cp-multiplayer.cloudfunctions.net/GetPlayerRecords2'
-    headers = {
-        "accept": "*/*",
-        "content-type": "application/json",
-        "content-length": "4686",
-        "accept-language": "ru",
-        "user-agent": "com.aidana.cardriving.ios/4.8.9 iPhone/16.7.6 hw/iPhone10_6",
-        "authorization": f"Bearer {request}",
-        "accept-encoding": "gzip, deflate, br"
-    }
-
-    payload = {
-        "data": 0
-    }
-
-    a = requests.post(url, headers=headers, json=payload)
-    if a.status_code == 200:
-        a_json = json.loads(a.text)
-        return a_json['result']
-    else: 
-        return a.status_code
-
-def get_coin(request):
-    url = 'https://us-central1-cp-multiplayer.cloudfunctions.net/SavePlayerRecordsPartially5'
-    headers = {
-        "accept": "*/*",
-        "content-type": "application/json",
-        "content-length": "4686",
-        "accept-language": "ru",
-        "user-agent": "com.aidana.cardriving.ios/4.8.9 iPhone/16.7.6 hw/iPhone10_6",
-        "authorization": f"Bearer {request}",
-        "accept-encoding": "gzip, deflate, br"
-    }
-    random_numbers = random.randint(10000000, 99999999) 
-    xx = {"data":"{\"localID\":\"ХХХ7777\",\"money\":50000000,\"Name\":\"[000000]keros1n\",\"coin\":30000,\"allData\":\"ios7\",\"boughtFsos\":[-1],\"boughtPoliceLights\":[0,9,1,1,3,0,2,1,0,3,1,0],\"boughtPoliceSirens\":[1],\"FriendsID\":[],\"LevelsDoneTime\":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],\"floats\":[169.0,188.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],\"integers\":[1,1,1,1,1,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,15,0,0,0,0,0,0],\"fcar\":[0],\"favouriteWheels\":[],\"personEquipmentsMale.Gender\":1,\"personEquipmentsMale.bag\":[],\"personEquipmentsMale.beard\":[],\"personEquipmentsMale.cap\":[3,4,5],\"personEquipmentsMale.face\":[0],\"personEquipmentsMale.glasses\":[],\"personEquipmentsMale.gloves\":[],\"personEquipmentsMale.hair\":[3],\"personEquipmentsMale.mask\":[],\"personEquipmentsMale.pants\":[3],\"personEquipmentsMale.shoes\":[0],\"personEquipmentsMale.top\":[0],\"personEquipmentsMale.SelectedEquipments\":[-1,0,-1,3,-1,0,-1,-1,3,0,-1],\"personEquipmentsFemale.Gender\":1,\"personEquipmentsFemale.bag\":[],\"personEquipmentsFemale.beard\":[],\"personEquipmentsFemale.cap\":[],\"personEquipmentsFemale.face\":[],\"personEquipmentsFemale.glasses\":[],\"personEquipmentsFemale.gloves\":[],\"personEquipmentsFemale.hair\":[],\"personEquipmentsFemale.mask\":[],\"personEquipmentsFemale.pants\":[],\"personEquipmentsFemale.shoes\":[],\"personEquipmentsFemale.top\":[],\"personEquipmentsFemale.SelectedEquipments\":[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1],\"platesData\":{\"allPlates\":[{\"plateId\":1,\"frontCarId\":-1,\"rearCarId\":-1,\"vinyls\":[]},{\"plateId\":2,\"frontCarId\":-1,\"rearCarId\":-1,\"vinyls\":[]},{\"plateId\":3,\"frontCarId\":-1,\"rearCarId\":-1,\"vinyls\":[]},{\"plateId\":4,\"frontCarId\":-1,\"rearCarId\":-1,\"vinyls\":[]},{\"plateId\":5,\"frontCarId\":-1,\"rearCarId\":-1,\"vinyls\":[]},{\"plateId\":6,\"frontCarId\":-1,\"rearCarId\":-1,\"vinyls\":[]}]},\"carIDnStatus\":{\"carGeneratedIDs\":[\"PP046001_0EM520\",\"PP046001_1HZ434\",\"PP046001_2AI601\",\"PP046001_3XE666\",\"PP046001_4UE186\",\"PP046001_5PT234\",\"PP046001_6YX838\",\"PP046001_7LX480\",\"PP046001_8DS116\",\"PP046001_9NX832\",\"PP046001_10WK456\",\"PP046001_11TD028\",\"PP046001_12ND577\",\"PP046001_13DV244\",\"PP046001_14AG741\",\"PP046001_15BS263\",\"\",\"PP046001_17LK238\",\"PP046001_18JF051\",\"PP046001_19KX803\",\"PP046001_20GZ586\",\"PP046001_21UF017\",\"PP046001_22YP130\",\"PP046001_23FN836\",\"PP046001_24HC607\",\"\",\"\",\"PP046001_27RX784\",\"PP046001_28KK142\",\"PP046001_29WE007\",\"PP046001_30PD713\",\"PP046001_31RE817\",\"PP046001_32YY233\",\"\",\"\",\"PP046001_35VU702\",\"\",\"PP046001_37GL131\",\"\",\"PP046001_39TJ356\",\"PP046001_40FW772\",\"PP046001_41EU384\",\"PP046001_42WG860\",\"PP046001_43BS150\",\"PP046001_44WH827\",\"PP046001_45FH475\",\"\",\"PP046001_47UJ768\",\"PP046001_48TV341\",\"PP046001_49JN530\",\"\",\"PP046001_51QD838\",\"\",\"PP046001_53YV825\",\"PP046001_54GJ675\",\"PP046001_55ML516\",\"PP046001_56SJ686\",\"PP046001_57LH242\",\"PP046001_58MP057\",\"PP046001_59AZ262\",\"PP046001_60JU068\",\"PP046001_61SD005\",\"PP046001_62PN525\",\"\",\"\",\"PP046001_65TK146\",\"PP046001_66QD778\",\"\",\"\",\"\",\"PP046001_70ZC458\",\"\",\"\",\"\",\"PP046001_74AX427\",\"\",\"PP046001_76QU426\",\"PP046001_77YK376\",\"\",\"\",\"\",\"PP046001_81GH646\",\"PP046001_82IE441\",\"\",\"\",\"PP046001_85WP652\",\"PP046001_86YN631\",\"PP046001_87CN364\",\"PP046001_88UP157\",\"PP046001_89ZN352\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"_99CE612\",\"PP046001_100ZW228\",\"PP046001_101IA561\",\"PP046001_102UU717\",\"PP046001_103PY155\",\"PP046001_104IX462\",\"PP046001_105MM263\",\"PP046001_106XQ521\",\"PP046001_107AL041\",\"PP046001_108CS818\",\"PP046001_109SP418\",\"PP046001_110UZ317\",\"PP046001_111EI323\",\"PP046001_112UW055\",\"PP046001_113RE516\",\"PP046001_114IU002\",\"PP046001_115RY424\",\"PP046001_116TC480\",\"PP046001_117BK850\",\"PP046001_118LQ005\",\"\",\"PP046001_120BL584\",\"PP046001_121AC887\",\"\",\"PP046001_123LQ316\",\"PP046001_124ND278\",\"PP046001_125TF635\",\"PP046001_126JW025\",\"PP046001_127DT758\",\"PP046001_128FJ077\",\"PP046001_129HK434\",\"PP046001_130XW543\",\"PP046001_131KV244\",\"PP046001_132BD828\",\"PP046001_133HL267\",\"PP046001_134MX336\",\"PP046001_135SE266\",\"PP046001_136PL387\",\"PP046001_137II563\",\"PP046001_138AV428\",\"PP046001_139YP064\",\"PP046001_140EI273\",\"PP046001_141ZW243\",\"PP046001_142MF631\",\"PP046001_143GZ785\",\"PP046001_144XG274\",\"PP046001_145PS766\",\"PP046001_146VP038\",\"PP046001_147XW868\",\"PP046001_148TS261\",\"PP046001_149CC143\",\"PP046001_150LH203\",\"PP046001_151EA023\",\"PP046001_152RE265\",\"PP046001_153WC743\",\"PP046001_154SM847\",\"PP046001_155XR248\",\"PP046001_156CP055\",\"PP046001_157II684\",\"PP046001_158PH630\",\"PP046001_159WR786\",\"PP046001_160TN826\",\"PP046001_161ZB761\",\"PP046001_162AN531\",\"PP046001_163AV585\",\"PP046001_164LX861\",\"PP046001_165YL448\",\"PP046001_166MT276\",\"\",\"PP046001_168IP887\",\"PP046001_169IQ177\",\"PP046001_170EV155\",\"PP046001_171GP661\",\"PP046001_172WP866\",\"\",\"\",\"PP046001_175ZA568\",\"PP046001_176EQ523\",\"PP046001_177VG000\",\"PP046001_178YP367\",\"PP046001_179WS654\",\"PP046001_180GQ561\",\"PP046001_181IH643\",\"PP046001_182FH072\",\"PP046001_183TE720\",\"PP046001_184QM888\",\"PP046001_185JI650\",\"PP046001_186DZ572\",\"PP046001_187QN161\",\"PP046001_188SJ663\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\"],\"carStatus\":[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,0,0,1,0,1,0,1,1,1,1,1,1,1,0,1,1,1,0,1,0,1,1,1,1,1,1,1,1,1,1,0,0,1,1,0,0,0,1,0,0,0,1,0,1,1,0,0,0,1,1,0,0,1,1,1,1,1,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},\"flags\":{},\"animations\":[1,2,3,4],\"wheels\":[73,74,79,88,84,87,97,98,101]}"}
-
-    xx['data'] = xx['data'].replace('"localID":"random_numbers"', f'"localID":"66CX"')
-    print(xx['data'])
-
-    a = requests.post(url, headers=headers, json=xx)
-    return a
-
-def get_car(request):
-    url = 'https://us-central1-cp-multiplayer.cloudfunctions.net/SaveCarsPartially5'
-    headers = {
-        "accept": "*/*",
-        "content-type": "application/json",
-        "content-length": "4686",
-        "accept-language": "ru",
-        "user-agent": "com.aidana.cardriving.ios/4.8.9 iPhone/16.7.6 hw/iPhone10_6",
-        "authorization": f"Bearer {request}",
-        "accept-encoding": "gzip, deflate, br"
-    }
-
-        
-    # 144 E63
-    # 104 M5 F90
-    # 136 w222
-    # 173 banan
-    # 193 M3 turing
-    payload = {}
-    
-    
-    a = requests.post(url, headers=headers, json=payload)
-    return a
-
-def get_king(request):
-    url = "https://us-central1-cp-multiplayer.cloudfunctions.net/SetUserRating4"
-    url_2 = "https://us-central1-cpm-2-7cea1.cloudfunctions.net/SetUserRating4_AppI"
-    headers = {
-        "accept": "*/*",
-        "content-type": "application/json",
-        "accept-language": "ru",
-        "user-agent": "com.aidana.cardriving.ios/4.8.9 iPhone/16.7.6 hw/iPhone10_6",
-        "authorization": f"Bearer {request}",
-        "accept-encoding": "gzip, deflate, br"
-    }
-    dd = {
-    "data": "{\"RatingData\" : {\"t_distance\" : 2000000000,\"time\" : 2000000000,\"speed_banner\" : 2000000000,\"gifts\" : 2000000000,\"transure\" : 2000000000,\"cars\" : 2000000000,\"levles\" : 2000000000,\"drift\" : 2000000000,\"run\" : 2000000000,\"police\" : 2000000000,\"block_post\" : 2000000000,\"real_estate\" : 2000000000,\"fule\" : 2000000000,\"car_trade\" : 2000000000,\"car_exchange\" : 2000000000,\"burnt_tire\" : 2000000000,\"car_fix\" : 2000000000,\"car_wash\" : 2000000000,\"offroad\" : 2000000000,\"passanger_distance\" : 2000000000,\"reactions\" : 2000000000,\"drift_max\" : 2000000000,\"taxi\" : 2000000000,\"delivery\" : 2000000000,\"cargo\" : 2000000000,\"push_ups\" : 2000000000,\"slicer_cut\" : 2000000000,\"car_collided\" : 2000000000,\"new_type\" : 2000000000}}"}
-    data = {
-        "data":"{\"RatingData\" : {\"t_distance\" : 2000000000,\"time\" : 2000000000,\"speed_banner\": 2000000000,\"gifts\": 2000000000,\"transure\": 2000000000,\"cars\": 137,\"levles\": 82,\"drift\": 2000000000,\"run\": 2000000000,\"police\": 2000000000,\"block_post\": 2000000000,\"real_estate\": 12,\"fule\": 2000000000,\"car_trade\": 2000000000,\"car_exchange\": 2000000000,\"burnt_tire\": 2000000000,\"car_fix\": 2000000000,\"car_wash\": 2000000000,\"offroad\": 2000000000,\"passanger_distance\": 2000000000,\"reactions\": 2000000000,\"drift_max\": 2000000000,\"texi\": 2000000000,\"delivery\": 2000000000,\"cargo\": 2000000000,\"push_ups\": 2000000000,\"slicer_cut\":1,\"car_collided\":2000,\"new_type\": 2000}"
-    }
-
-
-
-    a = requests.post(url, headers=headers, json=dd)
-    return a.text
-
-def reg():
-    url = 'https://www.googleapis.com/identitytoolkit/v3/relyingparty/signupNewUser?key=AIzaSyAe_aOVT1gSfmHKBrorFvX4fRwN5nODXVA'
-    headers = {
-        "x-client-version": "iOS/FirebaseSDK/10.13.0/FirebaseCore-iOS",
-        "content-type": "application/json",
-        "accept": "*/*",
-        "x-ios-bundle-identifier": "com.aidana.cardriving.ios",
-        "x-firebase-gmpid": "1:581727203278:ios:461cf9e8a435624b39459f",
-        "user-agent": "FirebaseAuth.iOS/10.13.0 com.aidana.cardriving.ios/4.8.9 iPhone/16.7.6 hw/iPhone10_6",
-        "accept-language": "en",
-        "accept-encoding": "gzip, deflate, br"
-    }
-    data = {
-        "email": "wquzdbsf69@hotmail.com",
-        "password": "12345678",
-        "returnSecureToken": True
-    }
-    with open('email.json',mode='a',encoding='utf-8') as f:
-        json.dump(data, f, indent=4, ensure_ascii=False)
-    
-    a = requests.post(url, headers=headers, json=data)    
-    return a
-
-def cpm_2():
-    url = 'https://us-central1-cpm-2-7cea1.cloudfunctions.net/'
-    headers = {
-        "accept": "*/*",
-        "content-type": "application/json",
-        "content-length": "4686",
-        "accept-language": "ru",
-        "user-agent": "com.aidana.cardriving.ios/4.8.9 iPhone/16.7.6 hw/iPhone10_6",
-        "authorization": f"Bearer eyJhbGciOiJSUzI1NiIsImtpZCI6ImQ0MjY5YTE3MzBlNTA3MTllNmIxNjA2ZTQyYzNhYjMyYjEyODA0NDkiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb20vY3BtLTItN2NlYTEiLCJhdWQiOiJjcG0tMi03Y2VhMSIsImF1dGhfdGltZSI6MTcyNDIzNDQ2NywidXNlcl9pZCI6IlBrTGhNQXVPSkxXU3RZZG15TFNrQ29BZ1NmaDIiLCJzdWIiOiJQa0xoTUF1T0pMV1N0WWRteUxTa0NvQWdTZmgyIiwiaWF0IjoxNzI0MjM0NDY3LCJleHAiOjE3MjQyMzgwNjcsImVtYWlsIjoic2hvcmFzdWw2MzExQGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJmaXJlYmFzZSI6eyJpZGVudGl0aWVzIjp7ImVtYWlsIjpbInNob3Jhc3VsNjMxMUBnbWFpbC5jb20iXX0sInNpZ25faW5fcHJvdmlkZXIiOiJwYXNzd29yZCJ9fQ.MNGBM-iMbk1Pt5VChBMWKyqYzrm41TYlWLdy_NKz6OJPNtbUeQje8eEbo4vHJIds6httANgSffipPDX0TshdQiNN_HYUA_3lOq0N_l6vzY5B9BZ-Aut6lMz9eRrpgPQJDQdSYOhDlyP7tLM8Cr3AEyh7J_6hzEwvGZy2jn9GqrgveN53KBUGu0a6FaU7aXMc74rfu05xzKxu-Rd3-sFEtHq3EM-EQizeBi4aE3bHn4koKblo7HYiJwluBxOBr4ieHtA2qxGfJAiDnC742NpyvBvJfqtUWEEAwtwldYKxDiXnvPrS1Hfp4fDgBqypOrOPEjDQ4jhGAgQGWiyWU4_Qjw",
-        "accept-encoding": "gzip, deflate, br"
-    }    
-    # So7cLsmk/Q4ty/LTxad0jw==
-    data = {"data": "0"}
-    a = requests.post(url, headers=headers, json=data)
-    return a.text
-
-print(reg()) 
-a = login('login ','parol')
-b = get_coin(a) 
-print(b)
-c = get_king(a)
-print(c) 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        console.print("[bold red]! ERROR[/bold red]: seems like your login is not properly set !.")
+        exit(1)
+
+def load_key_data(cpm):
+    data = cpm.get_key_data()
+    console.print("[bold][red]========[/red][ ACCESS KEY DETAILS ][red]========[/red][/bold]")
+    console.print("[bold green]Access Key [/bold green]: " + data.get('access_key') + ".")
+    console.print("[bold green]Telegram ID[/bold green]: " + str(data.get('telegram_id')) + ".")
+    console.print("[bold green]Credits    [/bold green]: " + (str(data.get('coins')) if not data.get('is_unlimited') else 'Unlimited') + ".", end="\n\n")
+
+def prompt_valid_value(content, tag, password=False):
+    while True:
+        value = Prompt.ask(content, password=password)
+        if not value or value.isspace():
+            print(tag + " cannot be empty or just spaces. Please try again.")
+        else:
+            return value
+
+def interpolate_color(start_color, end_color, fraction):
+    start_rgb = tuple(int(start_color[i:i+2], 16) for i in (1, 3, 5))
+    end_rgb = tuple(int(end_color[i:i+2], 16) for i in (1, 3, 5))
+    interpolated_rgb = tuple(int(start + fraction * (end - start)) for start, end in zip(start_rgb, end_rgb))
+    return "{:02x}{:02x}{:02x}".format(*interpolated_rgb)
+
+def rainbow_gradient_string(customer_name):
+    modified_string = ""
+    num_chars = len(customer_name)
+    start_color = "{:06x}".format(random.randint(0, 0xFFFFFF))
+    end_color = "{:06x}".format(random.randint(0, 0xFFFFFF))
+    for i, char in enumerate(customer_name):
+        fraction = i / max(num_chars - 1, 1)
+        interpolated_color = interpolate_color(start_color, end_color, fraction)
+        modified_string += f'[{interpolated_color}]{char}'
+    return modified_string
+
+if __name__ == "__main__":
+    console = Console()
+    signal.signal(signal.SIGINT, signal_handler)
+    while True:
+        banner(console)
+        acc_email = prompt_valid_value("[bold][?] Account Email[/bold]", "Email", password=False)
+        acc_password = prompt_valid_value("[bold][?] Account Password[/bold]", "Password", password=False)
+        acc_access_key = prompt_valid_value("[bold][?] Access Key[/bold]", "Access Key", password=False)
+        console.print("[bold cyan][%] Trying to Login[/bold cyan]: ", end=None)
+        cpm = cpmnuker.CPMNuker(acc_access_key)
+        login_response = cpm.login(acc_email, acc_password)
+        if login_response != 0:
+            if login_response == 100:
+                console.print("[bold red]ACCOUNT NOT FOUND (✘)[/bold red].")
+                sleep(2)
+                continue
+            elif login_response == 101:
+                console.print("[bold red]WRONG PASSWORD (✘)[/bold red].")
+                sleep(2)
+                continue
+            elif login_response == 103:
+                console.print("[bold red]INVALID ACCESS KEY (✘)[/bold red].")
+                sleep(2)
+                continue
+            else:
+                console.print("[bold red]TRY AGAIN (✘)[/bold red].")
+                console.print("[bold yellow]! Note:[/bold yellow]: make sure you filled out the fields !.")
+                sleep(2)
+                continue
+        else:
+            console.print("[bold green]SUCCESSFUL (✔)[/bold green].")
+            sleep(2)
+        while True:
+            banner(console)
+            load_player_data(cpm)
+            load_key_data(cpm)
+            choices = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26"]
+            console.print("[bold cyan](01): Increase Money ~ 1K[/bold cyan]")
+            console.print("[bold cyan](02): Increase Coins ~ 3.5K[/bold cyan]")
+            console.print("[bold cyan](03): King Rank ~ 4K[/bold cyan]")
+            console.print("[bold cyan](04): Change ID ~ 3.5K[/bold cyan]")
+            console.print("[bold cyan](05): Change Name ~ 100[/bold cyan]")
+            console.print("[bold cyan](06): Change Name (Rainbow) ~ 100[/bold cyan]")
+            console.print("[bold cyan](07): Account Delete ~ FREE[/bold cyan]")
+            console.print("[bold cyan](08): Account Register ~ FREE[/bold cyan]")
+            console.print("[bold cyan](09): Delete Friends ~ 500[/bold cyan]")
+            console.print("[bold cyan](10): Unlock Paid Cars + Siren ~ 5K[/bold cyan]")
+            console.print("[bold cyan](11): Unlock w16 Engine ~ 3K[/bold cyan]")
+            console.print("[bold cyan](12): Unlock All Horns ~ 3K[/bold cyan]")
+            console.print("[bold cyan](13): Unlock Disable Damage ~ 2K[/bold cyan]")
+            console.print("[bold cyan](14): Unlock Unlimited Fuel ~ 2K[/bold cyan]")
+            console.print("[bold cyan](15): Unlock House 3 ~ 3.5K[/bold cyan]")
+            console.print("[bold cyan](16): Unlock Smoke ~ 2K[/bold cyan]")
+            console.print("[bold cyan](17): Change Race Wins ~ 1K[/bold cyan]")
+            console.print("[bold cyan](18): Change Race Loses ~ 1K[/bold cyan]")
+            console.print("[bold cyan](19): Clone Account ~ 5K[/bold cyan]")
+            console.print("[bold cyan](20): Unlock all Cars ~ 3K[/bold cyan]")
+            console.print("[bold cyan](21): Unlock Siren all Cars ~ 3.5K[/bold cyan]")
+            console.print("[bold cyan](22): Unlock Lamborghinis 299hp (IOS Only) ~ 7K[/bold cyan]")
+            console.print("[bold cyan](23): Hack Car Speed (299hp) ~ 5K[/bold cyan]")
+            console.print("[bold cyan](24): Remove Front Bumper ~ 2.5K[/bold cyan]")
+            console.print("[bold cyan](25): Remove Rear Bumper ~ 2.5K[/bold cyan]")
+            console.print("[bold cyan](26): Unlock Wheels ~ 3.5K[/bold cyan]")
+            console.print("[bold cyan](0) : Exit[/bold cyan]", end="\n\n")
+            service = IntPrompt.ask("[bold][?] Select a Service [red][1-" + choices[-1] + " or 0][/red][/bold]", choices=choices, show_choices=False)
+            if service == 0: # Exit
+                console.print("[bold yellow][!] Thank You for using our tool.[/bold yellow].")
+            elif service == 1: # Increase Money
+                console.print("[bold cyan][!] Insert how much money do you want.[/bold cyan]")
+                amount = IntPrompt.ask("[bold][?] Amount[/bold]")
+                console.print("[bold cyan][%] Saving your data[/bold cyan]: ", end=None)
+                if amount > 0 and amount <= 50000000:
+                    if cpm.set_player_money(amount):
+                        console.print("[bold green]SUCCESSFUL (✔)[/bold green]")
+                        console.print("==================================")
+                        answ = Prompt.ask("[bold cyan][?] Do You want to Exit ?[/bold cyan]", choices=["y", "n"], default="n")
+                        if answ == "y": console.print("[bold yellow][!] Thank You for using our tool.[/bold yellow].")
+                        else: continue
+                    else:
+                        console.print("[bold red]FAILED (✘)[/bold red]")
+                        console.print("[bold yellow][!] Please try again.[/bold yellow]")
+                        sleep(2)
+                        continue
+                else:
+                    console.print("[bold red]FAILED (✘)[/bold red]")
+                    console.print("[bold yellow][!] Please use valid values.[/bold yellow]")
+                    sleep(2)
+                    continue
+            elif service == 2: # Increase Coins
+                console.print("[bold cyan][!] Insert how much coins do you want.[/bold cyan]")
+                amount = IntPrompt.ask("[bold][?] Amount[/bold]")
+                console.print("[bold cyan][%] Saving your data[/bold cyan]: ", end=None)
+                if amount > 0 and amount <= 90000:
+                    if cpm.set_player_coins(amount):
+                        console.print("[bold green]SUCCESSFUL (✔)[/bold green]")
+                        console.print("==================================")
+                        answ = Prompt.ask("[bold cyan][?] Do You want to Exit ?[/bold cyan]", choices=["y", "n"], default="n")
+                        if answ == "y": console.print("[bold yellow][!] Thank You for using our tool.[/bold yellow].")
+                        else: continue
+                    else:
+                        console.print("[bold red]FAILED (✘)[/bold red]")
+                        console.print("[bold yellow][!] Please try again.[/bold yellow]")
+                        sleep(2)
+                        continue
+                else:
+                    console.print("[bold red]FAILED (✘)[/bold red]")
+                    console.print("[bold yellow][!] Please use valid values.[/bold yellow]")
+                    sleep(2)
+                    continue
+            elif service == 3: # King Rank
+                console.print("[bold red][!] Note:[/bold red]: if the king rank doesn't appear in game, close it and open few times.")
+                console.print("[bold red][!] Note:[/bold red]: please don't do King Rank on same account twice.")
+                sleep(2)
+                console.print("[bold cyan][%] Giving you a King Rank[/bold cyan]: ", end=None)
+                if cpm.set_player_rank():
+                    console.print("[bold green]SUCCESSFUL (✔)[/bold green]")
+                    console.print("==================================")
+                    answ = Prompt.ask("[bold cyan][?] Do You want to Exit ?[/bold cyan]", choices=["y", "n"], default="n")
+                    if answ == "y": console.print("[bold yellow][!] Thank You for using our tool.[/bold yellow].")
+                    else: continue
+                else:
+                    console.print("[bold red]FAILED (✘)[/bold red]")
+                    console.print("[bold yellow][!] Please try again.[/bold yellow]")
+                    sleep(2)
+                    continue
+            elif service == 4: # Change ID
+                console.print("[bold cyan][!] Enter your new ID.[/bold cyan]")
+                new_id = Prompt.ask("[bold][?] ID[/bold]")
+                console.print("[bold cyan][%] Saving your data[/bold cyan]: ", end=None)
+                if len(new_id) >= 9 and len(new_id) <= 14 and (' ' in new_id) == False:
+                    if cpm.set_player_localid(new_id.upper()):
+                        console.print("[bold green]SUCCESSFUL (✔)[/bold green]")
+                        console.print("==================================")
+                        answ = Prompt.ask("[bold cyan][?] Do You want to Exit ?[/bold cyan]", choices=["y", "n"], default="n")
+                        if answ == "y": console.print("[bold yellow][!] Thank You for using our tool.[/bold yellow].")
+                        else: continue
+                    else:
+                        console.print("[bold red]FAILED (✘)[/bold red]")
+                        console.print("[bold yellow][!] Please try again.[/bold yellow]")
+                        sleep(2)
+                        continue
+                else:
+                    console.print("[bold red]FAILED (✘)[/bold red]")
+                    console.print("[bold yellow][!] Please use valid ID.[/bold yellow]")
+                    sleep(2)
+                    continue
+            elif service == 5: # Change Name
+                console.print("[bold cyan][!] Enter your new Name.[/bold cyan]")
+                new_name = Prompt.ask("[bold][?] Name[/bold]")
+                console.print("[bold cyan][%] Saving your data[/bold cyan]: ", end=None)
+                if len(new_name) >= 0 and len(new_name) <= 30:
+                    if cpm.set_player_name(new_name):
+                        console.print("[bold green]SUCCESSFUL (✔)[/bold green]")
+                        console.print("==================================")
+                        answ = Prompt.ask("[bold cyan][?] Do You want to Exit ?[/bold cyan]", choices=["y", "n"], default="n")
+                        if answ == "y": console.print("[bold yellow][!] Thank You for using our tool.[/bold yellow].")
+                        else: continue
+                    else:
+                        console.print("[bold red]FAILED (✘)[/bold red]")
+                        console.print("[bold yellow][!] Please try again.[/bold yellow]")
+                        sleep(2)
+                        continue
+                else:
+                    console.print("[bold red]FAILED (✘)[/bold red]")
+                    console.print("[bold yellow][!] Please use valid values.[/bold yellow]")
+                    sleep(2)
+                    continue
+            elif service == 6: # Change Name Rainbow
+                console.print("[bold cyan][!] Enter your new Rainbow Name.[/bold cyan]")
+                new_name = Prompt.ask("[bold][?] Name[/bold]")
+                console.print("[bold cyan][%] Saving your data[/bold cyan]: ", end=None)
+                if len(new_name) >= 0 and len(new_name) <= 30:
+                    if cpm.set_player_name(rainbow_gradient_string(new_name)):
+                        console.print("[bold green]SUCCESSFUL (✔)[/bold green]")
+                        console.print("==================================")
+                        answ = Prompt.ask("[bold cyan][?] Do You want to Exit ?[/bold cyan]", choices=["y", "n"], default="n")
+                        if answ == "y": console.print("[bold yellow][!] Thank You for using our tool.[/bold yellow].")
+                        else: continue
+                    else:
+                        console.print("[bold red]FAILED (✘)[/bold red]")
+                        console.print("[bold yellow][!] Please try again.[/bold yellow]")
+                        sleep(2)
+                        continue
+                else:
+                    console.print("[bold red]FAILED (✘)[/bold red]")
+                    console.print("[bold yellow][!] Please use valid values.[/bold yellow]")
+                    sleep(2)
+                    continue
+            elif service == 7: # Account Delete
+                console.print("[bold cyan][!] After deleting your account there is no going back !!.[/bold cyan]")
+                answ = Prompt.ask("[bold cyan][?] Do You want to Delete this Account ?![/bold cyan]", choices=["y", "n"], default="n")
+                if answ == "y":
+                    cpm.delete()
+                    console.print("[bold cyan][%] Deleting Your Account[/bold cyan]: [bold green]SUCCESSFUL (✔)[/bold green].")
+                    console.print("==================================")
+                    console.print("[bold yellow][!] Thank You for using our tool.[/bold yellow].")
+                else: continue
+            elif service == 8: # Account Register
+                console.print("[bold cyan][!] Registring new Account.[/bold cyan]")
+                acc2_email = prompt_valid_value("[bold][?] Account Email[/bold]", "Email", password=False)
+                acc2_password = prompt_valid_value("[bold][?] Account Password[/bold]", "Password", password=False)
+                console.print("[bold cyan][%] Creating new Account[/bold cyan]: ", end=None)
+                status = cpm.register(acc2_email, acc2_password)
+                if status == 0:
+                    console.print("[bold green]SUCCESSFUL (✔)[/bold green]")
+                    console.print("==================================")
+                    console.print("[bold red][!] INFO[/bold red]: In order to tune this account with CPMNuker")
+                    console.print("you most sign-in to the game using this account.")
+                    sleep(2)
+                    continue
+                elif status == 105:
+                    console.print("[bold red]FAILED (✘)[/bold red]")
+                    console.print("[bold yellow][!] This email is already exists !.[/bold yellow]")
+                    sleep(2)
+                    continue
+                else:
+                    console.print("[bold red]FAILED (✘)[/bold red]")
+                    console.print("[bold yellow][!] Please try again.[/bold yellow]")
+                    sleep(2)
+                    continue
+            elif service == 9: # Delete Friends
+                console.print("[bold cyan][%] Deleting your Friends[/bold cyan]: ", end=None)
+                if cpm.delete_player_friends():
+                    console.print("[bold green]SUCCESSFUL (✔)[/bold green]")
+                    console.print("==================================")
+                    answ = Prompt.ask("[bold cyan][?] Do You want to Exit ?[/bold cyan]", choices=["y", "n"], default="n")
+                    if answ == "y": console.print("[bold yellow][!] Thank You for using our tool.[/bold yellow].")
+                    else: continue
+                else:
+                    console.print("[bold red]FAILED (✘)[/bold red]")
+                    console.print("[bold yellow][!] Please try again.[/bold yellow]")
+                    sleep(2)
+                    continue
+            elif service == 10: # Unlock All Paid Cars + Siren
+                console.print("[bold yellow]! Note[/bold yellow]: this function takes a while to complete, please don't cancel.")
+                console.print("[bold cyan][%] Unlocking All Paid Cars[/bold cyan]: ", end=None)
+                if cpm.unlock_paid_cars():
+                    console.print("[bold green]SUCCESSFUL (✔)[/bold green]")
+                    console.print("==================================")
+                    answ = Prompt.ask("[bold cyan][?] Do You want to Exit ?[/bold cyan]", choices=["y", "n"], default="n")
+                    if answ == "y": console.print("[bold yellow][!] Thank You for using our tool.[/bold yellow].")
+                    else: continue
+                else:
+                    console.print("[bold red]FAILED (✘)[/bold red]")
+                    console.print("[bold yellow][!] Please try again.[/bold yellow]")
+                    sleep(2)
+                    continue
+            elif service == 11: # Unlock w16 Engine
+                console.print("[bold cyan][%] Unlocking w16 Engine[/bold cyan]: ", end=None)
+                if cpm.unlock_w16():
+                    console.print("[bold green]SUCCESSFUL (✔)[/bold green]")
+                    console.print("==================================")
+                    answ = Prompt.ask("[bold cyan][?] Do You want to Exit ?[/bold cyan]", choices=["y", "n"], default="n")
+                    if answ == "y": console.print("[bold yellow][!] Thank You for using our tool.[/bold yellow].")
+                    else: continue
+                else:
+                    console.print("[bold red]FAILED (✘)[/bold red]")
+                    console.print("[bold yellow][!] Please try again.[/bold yellow]")
+                    sleep(2)
+                    continue
+            elif service == 12: # Unlock All Horns
+                console.print("[bold cyan][%] Unlocking All Horns[/bold cyan]: ", end=None)
+                if cpm.unlock_horns():
+                    console.print("[bold green]SUCCESSFUL (✔)[/bold green]")
+                    console.print("==================================")
+                    answ = Prompt.ask("[bold cyan][?] Do You want to Exit ?[/bold cyan]", choices=["y", "n"], default="n")
+                    if answ == "y": console.print("[bold yellow][!] Thank You for using our tool.[/bold yellow].")
+                    else: continue
+                else:
+                    console.print("[bold red]FAILED (✘)[/bold red]")
+                    console.print("[bold yellow][!] Please try again.[/bold yellow]")
+                    sleep(2)
+                    continue
+            elif service == 13: # Disable Engine Damage
+                console.print("[bold cyan][%] Unlocking Disable Damage[/bold cyan]: ", end=None)
+                if cpm.disable_engine_damage():
+                    console.print("[bold green]SUCCESSFUL (✔)[/bold green]")
+                    console.print("==================================")
+                    answ = Prompt.ask("[bold cyan][?] Do You want to Exit ?[/bold cyan]", choices=["y", "n"], default="n")
+                    if answ == "y": console.print("[bold yellow][!] Thank You for using our tool.[/bold yellow].")
+                    else: continue
+                else:
+                    console.print("[bold red]FAILED (✘)[/bold red]")
+                    console.print("[bold yellow][!] Please try again.[/bold yellow]")
+                    sleep(2)
+                    continue
+            elif service == 14: # Unlimited Fuel
+                console.print("[bold cyan][%] Unlocking Unlimited Fuel[/bold cyan]: ", end=None)
+                if cpm.unlimited_fuel():
+                    console.print("[bold green]SUCCESSFUL (✔)[/bold green]")
+                    console.print("==================================")
+                    answ = Prompt.ask("[bold cyan][?] Do You want to Exit ?[/bold cyan]", choices=["y", "n"], default="n")
+                    if answ == "y": console.print("[bold yellow][!] Thank You for using our tool.[/bold yellow].")
+                    else: continue
+                else:
+                    console.print("[bold red]FAILED (✘)[/bold red]")
+                    console.print("[bold yellow][!] Please try again.[/bold yellow]")
+                    sleep(2)
+                    continue
+            elif service == 15: # Unlock House 3
+                console.print("[bold cyan][%] Unlocking House 3[/bold cyan]: ", end=None)
+                if cpm.unlock_houses():
+                    console.print("[bold green]SUCCESSFUL (✔)[/bold green]")
+                    console.print("==================================")
+                    answ = Prompt.ask("[bold cyan][?] Do You want to Exit ?[/bold cyan]", choices=["y", "n"], default="n")
+                    if answ == "y": console.print("[bold yellow][!] Thank You for using our tool.[/bold yellow].")
+                    else: continue
+                else:
+                    console.print("[bold red]FAILED (✘)[/bold red]")
+                    console.print("[bold yellow][!] Please try again.[/bold yellow]")
+                    sleep(2)
+                    continue
+            elif service == 16: # Unlock Smoke
+                console.print("[bold cyan][%] Unlocking Smoke[/bold cyan]: ", end=None)
+                if cpm.unlock_smoke():
+                    console.print("[bold green]SUCCESSFUL (✔)[/bold green]")
+                    console.print("==================================")
+                    answ = Prompt.ask("[bold cyan][?] Do You want to Exit ?[/bold cyan]", choices=["y", "n"], default="n")
+                    if answ == "y": console.print("[bold yellow][!] Thank You for using our tool.[/bold yellow].")
+                    else: continue
+                else:
+                    console.print("[bold red]FAILED (✘)[/bold red]")
+                    console.print("[bold yellow][!] Please try again.[/bold yellow]")
+                    sleep(2)
+                    continue
+            elif service == 17: # Change Races Wins
+                console.print("[bold cyan][!] Insert how much races you win.[/bold cyan]")
+                amount = IntPrompt.ask("[bold][?] Amount[/bold]")
+                console.print("[bold cyan][%] Changing your data[/bold cyan]: ", end=None)
+                if amount > 0 and amount <= 999:
+                    if cpm.set_player_wins(amount):
+                        console.print("[bold green]SUCCESSFUL (✔)[/bold green]")
+                        console.print("==================================")
+                        answ = Prompt.ask("[bold cyan][?] Do You want to Exit ?[/bold cyan]", choices=["y", "n"], default="n")
+                        if answ == "y": console.print("[bold yellow][!] Thank You for using our tool.[/bold yellow].")
+                        else: continue
+                    else:
+                        console.print("[bold red]FAILED (✘)[/bold red]")
+                        console.print("[bold yellow][!] Please try again.[/bold yellow]")
+                        sleep(2)
+                        continue
+                else:
+                    console.print("[bold red]FAILED (✘)[/bold red]")
+                    console.print("[bold yellow][!] Please use valid values.[/bold yellow]")
+                    sleep(2)
+                    continue
+            elif service == 18: # Change Races Loses
+                console.print("[bold cyan][!] Insert how much races you lose.[/bold cyan]")
+                amount = IntPrompt.ask("[bold][?] Amount[/bold]")
+                console.print("[bold cyan][%] Changing your data[/bold cyan]: ", end=None)
+                if amount > 0 and amount <= 999:
+                    if cpm.set_player_loses(amount):
+                        console.print("[bold green]SUCCESSFUL (✔)[/bold green]")
+                        console.print("==================================")
+                        answ = Prompt.ask("[bold cyan][?] Do You want to Exit ?[/bold cyan]", choices=["y", "n"], default="n")
+                        if answ == "y": console.print("[bold yellow][!] Thank You for using our tool.[/bold yellow].")
+                        else: continue
+                    else:
+                        console.print("[bold red]FAILED (✘)[/bold red]")
+                        console.print("[bold yellow][!] Please try again.[/bold yellow]")
+                        sleep(2)
+                        continue
+                else:
+                    console.print("[bold red]FAILED (✘)[/bold red]")
+                    console.print("[bold yellow][!] Please use valid values.[/bold yellow]")
+                    sleep(2)
+                    continue
+            elif service == 19: # Clone Account
+                console.print("[bold cyan]Please Enter Account Detalis[/bold cyan]:")
+                to_email = prompt_valid_value("[bold][?] Email[/bold]", "Email", password=False)
+                to_password = prompt_valid_value("[bold][?] Password[/bold]", "Password", password=False)
+                console.print("[bold cyan][%] Cloning your account[/bold cyan]: ", end=None)
+                if cpm.account_clone(to_email, to_password):
+                    console.print("[bold green]SUCCESSFUL.[/bold green]")
+                    console.print("==================================")
+                    answ = Prompt.ask("[bold cyan][?] Do You want to Exit ?[/bold cyan]", choices=["y", "n"], default="n")
+                    if answ == "y": console.print("[bold yellow][!] Thank You for using our tool.[/bold yellow].")
+                    else: continue
+                else:
+                    console.print("[bold red]FAILED.[/bold red]")
+                    console.print("[bold yellow][!] Please try again.[/bold yellow]")
+                    sleep(2)
+                    continue
+            elif service == 20: # Unlock all cars
+                console.print("[bold yellow][!] Note[/bold yellow]: this function takes a while to complete, please don't cancel.")
+                console.print("[bold cyan][%] Unlocking All Cars[/bold cyan]: ", end=None)
+                if cpm.unlock_all_cars():
+                    console.print("[bold green]SUCCESSFUL (✔)[/bold green]")
+                    console.print("==================================")
+                    answ = Prompt.ask("[bold cyan][?] Do You want to Exit ?[/bold cyan]", choices=["y", "n"], default="n")
+                    if answ == "y": console.print("[bold yellow][!] Thank You for using our tool.[/bold yellow].")
+                    else: continue
+                else:
+                    console.print("[bold red]FAILED (✘)[/bold red]")
+                    console.print("[bold yellow][!] Please try again.[/bold yellow]")
+                    sleep(2)
+                    continue
+            elif service == 21: # Unlock Siren all cars
+                console.print("[bold cyan][%] Unlocking All Cars Siren[/bold cyan]: ", end=None)
+                if cpm.unlock_all_cars_siren():
+                    console.print("[bold green]SUCCESSFUL.[/bold green]")
+                    console.print("==================================")
+                    answ = Prompt.ask("[bold cyan][?] Do You want to Exit ?[/bold cyan]", choices=["y", "n"], default="n")
+                    if answ == "y": console.print("[bold yellow][!] Thank You for using our tool.[/bold yellow].")
+                    else: continue
+                else:
+                    console.print("[bold red]FAILED.[/bold red]")
+                    console.print("[bold yellow][!] Please try again.[/bold yellow]")
+                    sleep(2)
+                    continue
+            elif service == 22: # Unlocking lamborghinis 299hp (IOS Only)
+                console.print("[bold cyan][%] Unlocking lamborghinis 299hp (IOS Only)[/bold cyan]: ", end=None)
+                if cpm.unlock_lambo_ios_hs():
+                    console.print("[bold green]SUCCESSFUL.[/bold green]")
+                    console.print("==================================")
+                    answ = Prompt.ask("[bold cyan][?] Do You want to Exit ?[/bold cyan]", choices=["y", "n"], default="n")
+                    if answ == "y": console.print("[bold yellow][!] Thank You for using our tool.[/bold yellow].")
+                    else: continue
+                else:
+                    console.print("[bold red]FAILED.[/bold red]")
+                    console.print("[bold yellow][!] Please try again.[/bold yellow]")
+                    sleep(2)
+                    continue
+            elif service == 23: # Hack Car Speed (299hp)
+                console.print("[bold yellow][!] Note[/bold yellow]: original speed can not be restored !.")
+                console.print("[bold cyan][!] Enter Car Details.[/bold cyan]")
+                car_id = IntPrompt.ask("[bold][?] Car ID[/bold]")
+                console.print("[bold cyan][%] Hacking Car Speed[/bold cyan]: ", end=None)
+                if cpm.hack_car_speed(car_id):
+                    console.print("[bold green]SUCCESSFUL (✔)[/bold green]")
+                    console.print("==================================")
+                    answ = Prompt.ask("[bold cyan][?] Do You want to Exit ?[/bold cyan]", choices=["y", "n"], default="n")
+                    if answ == "y": console.print("[bold yellow][!] Thank You for using our tool.[/bold yellow].")
+                    else: continue
+                else:
+                    console.print("[bold red]FAILED (✘)[/bold red]")
+                    console.print("[bold yellow][!] Please try again.[/bold yellow]")
+                    sleep(2)
+                    continue
+            elif service == 24: # Remove Front Bumper
+                console.print("[bold cyan][!] Enter Car Details.[/bold cyan]")
+                car_id = IntPrompt.ask("[bold][?] Car ID[/bold]")
+                console.print("[bold cyan][%] Removing Bumber[/bold cyan]: ", end=None)
+                if cpm.remove_front_bumper(car_id):
+                    console.print("[bold green]SUCCESSFUL (✔)[/bold green]")
+                    console.print("==================================")
+                    answ = Prompt.ask("[bold cyan][?] Do You want to Exit ?[/bold cyan]", choices=["y", "n"], default="n")
+                    if answ == "y": console.print("[bold yellow][!] Thank You for using our tool.[/bold yellow].")
+                    else: continue
+                else:
+                    console.print("[bold red]FAILED (✘)[/bold red]")
+                    console.print("[bold yellow][!] Please try again.[/bold yellow]")
+                    sleep(2)
+                    continue
+            elif service == 25: # Remove Rear Bumper
+                console.print("[bold cyan][!] Enter Car Details.[/bold cyan]")
+                car_id = IntPrompt.ask("[bold][?] Car ID[/bold]")
+                console.print("[bold cyan][%] Removing Bumber[/bold cyan]: ", end=None)
+                if cpm.remove_rear_bumper(car_id):
+                    console.print("[bold green]SUCCESSFUL (✔)[/bold green]")
+                    console.print("==================================")
+                    answ = Prompt.ask("[bold cyan][?] Do You want to Exit ?[/bold cyan]", choices=["y", "n"], default="n")
+                    if answ == "y": console.print("[bold yellow][!] Thank You for using our tool.[/bold yellow].")
+                    else: continue
+                else:
+                    console.print("[bold red]FAILED (✘)[/bold red]")
+                    console.print("[bold yellow][!] Please try again.[/bold yellow]")
+                    sleep(2)
+                    continue
+            elif service == 26: # Unlock Wheels
+                console.print("[bold cyan][%] Unlocking Wheels[/bold cyan]: ", end=None)
+                if cpm.unlock_houses():
+                    console.print("[bold green]SUCCESSFUL (✔)[/bold green]")
+                    console.print("==================================")
+                    answ = Prompt.ask("[bold cyan][?] Do You want to Exit ?[/bold cyan]", choices=["y", "n"], default="n")
+                    if answ == "y": console.print("[bold yellow][!] Thank You for using our tool.[/bold yellow].")
+                    else: continue
+                else:
+                    console.print("[bold red]FAILED (✘)[/bold red]")
+                    console.print("[bold yellow][!] Please try again.[/bold yellow]")
+                    sleep(2)
+                    continue
+            else:
+                continue
+            break
+        break
